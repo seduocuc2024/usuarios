@@ -22,10 +22,22 @@ public class Usuario {
     @Column(name = "email")
     private String email;
 
-    private List<Rol> roles;
-    private List<Direccion> direcciones;
+    @Column(name = "rol_nombre")
+    private String rolNombre;
 
-    //@Getter
+    @Column(name = "rol_id")
+    private int rolId;
+
+    @Column(name = "direccion_calle")
+    private String direccionCalle;
+
+    @Column(name = "direccion_ciudad")
+    private String direccionCiudad;
+
+    @Column(name = "direccion_codigo_postal")
+    private String direccionCodigoPostal;
+
+    //@Getters
 
     public Long getId(){
         return id;
@@ -39,12 +51,24 @@ public class Usuario {
         return email;
     }
 
-    public List<Rol> getRoles(){
-        return roles;
+    public String getRolNombre(){
+        return rolNombre;
     }
 
-    public List<Direccion> getDirecciones(){
-        return direcciones;
+    public int getRolId(){
+        return rolId;
+    }
+
+    public String getDireccionCalle(){
+        return direccionCalle;
+    }
+
+    public String getDireccionCiudad(){
+        return direccionCiudad;
+    }
+
+    public String getDireccionCodigoPostal(){
+        return direccionCodigoPostal;
     }
 
     public void setId(Long id){
@@ -59,11 +83,23 @@ public class Usuario {
         this.email = email;
     }
 
-    public void setRoles(List<Rol> roles) {
-        this.roles = roles;
+    public void setRolNombre(String rolNombre){
+        this.rolNombre = rolNombre;
     }
 
-    public void setDirecciones(List<Direccion> direcciones) {
-        this.direcciones = direcciones;
+    public void setRolId(int rolId){
+        this.rolId = rolId;
+    }
+
+    public void setDireccionCalle(String direccionCalle){
+        this.direccionCalle = direccionCalle;
+    }
+
+    public void setDireccionCiudad(String direccionCiudad){
+        this.direccionCiudad = direccionCiudad;
+    }
+
+    public void setDireccionCodigoPostal(String direccionCodigoPostal){
+        this.direccionCodigoPostal = direccionCodigoPostal;
     }
 }
