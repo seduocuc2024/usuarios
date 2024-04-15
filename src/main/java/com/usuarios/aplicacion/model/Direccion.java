@@ -23,15 +23,15 @@ public class Direccion {
 
     //@Getters
 
-    public int getIdDireccion(){
+    public int getId(){
         return id;
     }
 
-    public String getCalleDirecciones(){
+    public String getCalle(){
         return calle;
     }
 
-    public String getCiudadDirecciones(){
+    public String getCiudad(){
         return ciudad;
     }
 

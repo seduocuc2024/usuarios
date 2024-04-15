@@ -47,4 +47,23 @@ public class Usuario {
         return direcciones;
     }
 
+    public void setId(Long id){
+        this.id = id;
+    }
+
+    public void setNombre(String nombre){
+        this.nombre = nombre;
+    }
+
+    public void setEmail(String email){
+        this.email = email;
+    }
+
+    public void setRoles(List<Rol> roles) {
+        this.roles = roles;
+    }
+
+    public void setDirecciones(List<Direccion> direcciones) {
+        this.direcciones = direcciones;
+    }
 }
