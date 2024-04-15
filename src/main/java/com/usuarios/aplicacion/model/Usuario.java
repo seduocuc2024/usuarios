@@ -1,26 +1,33 @@
-package com.usuarios.aplicacion;
+package com.usuarios.aplicacion.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import java.util.List;
 
-
+@Entity
+@Table(name = "usuario")
 public class Usuario {
-    private int id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Long id;
+
+    @Column(name = "nombre")
     private String nombre;
+
+    @Column(name = "email")
     private String email;
+
     private List<Rol> roles;
     private List<Direccion> direcciones;
 
-    public Usuario(int id ,String nombre ,String email,List<Rol> roles,List<Direccion> direcciones ){
-        this.id = id;
-        this.nombre = nombre;
-        this.email = email;
-        this.roles = roles;
-        this.direcciones = direcciones;
-    }
-
     //@Getter
 
-    public int getId(){
+    public Long getId(){
         return id;
     }
 
