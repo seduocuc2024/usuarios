@@ -3,11 +3,15 @@ package com.usuarios.aplicacion.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import com.usuarios.aplicacion.model.Usuario;
 import com.usuarios.aplicacion.service.UsuarioService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -58,9 +62,23 @@ public class UsuarioController {
     }
     
     @PutMapping("/{id}")
-    public Usuario updateUsuario(@PathVariable Long id, @RequestBody Usuario usuario){
-        return usuarioService.updateUsuario(id, usuario);
+    public ResponseEntity<Object> updateUsuario(@PathVariable Long id, @Validated @RequestBody Usuario usuario, BindingResult result){
+    if(result.hasErrors()){
+        List<FieldError> errors = result.getFieldErrors();
+        List<String> errorMessages = new ArrayList<>();
+        for(FieldError error : errors){
+            errorMessages.add(error.getField() + ": " + error.getDefaultMessage());
+        }
+        log.error("Errores de validación al actualizar usuario con ID {}", id);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Errores de validación "+errorMessages));
     }
+    Usuario updatedUsuario = usuarioService.updateUsuario(id, usuario);
+    if(updatedUsuario == null){
+        log.error("Error al actualizar usuario con ID {}", id);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontró el usuario con ID " + id));
+    }
+    return ResponseEntity.ok(updatedUsuario);
+}
 
     @DeleteMapping("/{id}")
     public void deleteUsuario(@PathVariable Long id){
