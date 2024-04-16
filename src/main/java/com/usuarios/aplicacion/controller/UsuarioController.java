@@ -80,10 +80,20 @@ public class UsuarioController {
     return ResponseEntity.ok(updatedUsuario);
 }
 
+
+
     @DeleteMapping("/{id}")
-    public void deleteUsuario(@PathVariable Long id){
-        usuarioService.deleteUsuario(id);           
+    public ResponseEntity<Object> deleteUsuario(@PathVariable Long id){
+    Optional<Usuario> usuario = usuarioService.getUsuarioById(id);
+    if(usuario.isEmpty()){
+        log.error("No se encontró el usuario con ID {}", id);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontró el usuario con ID " + id));
     }
+    usuarioService.deleteUsuario(id); 
+    log.info("Usuario con ID {} eliminado correctamente", id);          
+    return ResponseEntity.ok().build();
+}
+
     
     static class ErrorResponse{
         private final String message;
