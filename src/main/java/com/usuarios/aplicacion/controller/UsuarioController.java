@@ -1,6 +1,9 @@
 package com.usuarios.aplicacion.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -14,85 +17,95 @@ import com.usuarios.aplicacion.service.UsuarioService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/usuarios")
 public class UsuarioController {
-
-    private static final Logger log = LoggerFactory.getLogger(UsuarioController.class);
-
     @Autowired
     private UsuarioService usuarioService;
 
     @GetMapping
-    public List<Usuario> getAllUsuarios(){
-        log.info("GET /usuarios");
-        log.info("Retornando todos los usuarios");
-        return usuarioService.getAllUsuarios();
+    public CollectionModel<EntityModel<Usuario>> getAllUsuarios(){
+        List<Usuario> usuarios = usuarioService.getAllUsuarios();
+
+        List<EntityModel<Usuario>> usuarioResources = usuarios.stream()
+                .map(usuario -> EntityModel.of(usuario,
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarioById(usuario.getId())).withSelfRel()
+                )).collect(Collectors.toList());
+
+        WebMvcLinkBuilder linkTo = WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getAllUsuarios());
+        CollectionModel<EntityModel<Usuario>> resources = CollectionModel.of(usuarioResources, linkTo.withRel("usuarios"));
+        
+        return resources;
     }
     
     @GetMapping("/{id}")
-    public ResponseEntity<Object> getUsuarioById(@PathVariable Long id){
+    public EntityModel<Usuario> getUsuarioById(@PathVariable Long id){
         Optional <Usuario> usuario = usuarioService.getUsuarioById(id);
 
-        if(usuario.isEmpty()){
-            log.error("No se encontro el usuario con ID {}", id);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontro el usuario con ID "+ id));
+        if(usuario.isPresent()){
+            return EntityModel.of(usuario.get(),
+                    WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarioById(id)).withSelfRel(),
+                    WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getAllUsuarios()).withRel("all-usuarios"));   
+        } else {
+            throw new UsuarioNotFoundException("Usuario not found with id: "+ id);
         }
-        return ResponseEntity.ok(usuario);
     }
     
     @PostMapping
-    public ResponseEntity<Object> createUsuario(@RequestBody Usuario usuario){
+    public EntityModel<Usuario> createUsuario(@RequestBody Usuario usuario){
         Usuario createdUsuario = usuarioService.createUsuario(usuario);
-        if(createdUsuario == null){
-            log.error("Error al crear al usuario {}", usuario);
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Error al crear al usuario"));
-        }
-        return ResponseEntity.ok(createdUsuario);
+        return EntityModel.of(createdUsuario,
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarioById(createdUsuario.getId())).withSelfRel(),
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getAllUsuarios()).withRel("all-usuarios"));
+    }
+
+    @PutMapping("/{id}")
+    public EntityModel<Usuario> updateUsuario(@PathVariable Long id, @RequestBody Usuario usuario){
+        Usuario updatedUsuario = usuarioService.updateUsuario(id, usuario);
+        return EntityModel.of(updatedUsuario,
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getUsuarioById(id)).withSelfRel(),
+                WebMvcLinkBuilder.linkTo(WebMvcLinkBuilder.methodOn(this.getClass()).getAllUsuarios()).withRel("all-usuarios"));
     }
     
-    @PutMapping("/{id}")
-    public ResponseEntity<Object> updateUsuario(@PathVariable Long id, @Validated @RequestBody Usuario usuario, BindingResult result){
-    if(result.hasErrors()){
-        List<FieldError> errors = result.getFieldErrors();
-        List<String> errorMessages = new ArrayList<>();
-        for(FieldError error : errors){
-            errorMessages.add(error.getField() + ": " + error.getDefaultMessage());
-        }
-        log.error("Errores de validación al actualizar usuario con ID {}", id);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Errores de validación "+errorMessages));
-    }
-    Usuario updatedUsuario = usuarioService.updateUsuario(id, usuario);
-    if(updatedUsuario == null){
-        log.error("Error al actualizar usuario con ID {}", id);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontró el usuario con ID " + id));
-    }
-    return ResponseEntity.ok(updatedUsuario);
+//     @PutMapping("/{id}")
+//     public ResponseEntity<Object> updateUsuario(@PathVariable Long id, @Validated @RequestBody Usuario usuario, BindingResult result){
+//     if(result.hasErrors()){
+//         List<FieldError> errors = result.getFieldErrors();
+//         List<String> errorMessages = new ArrayList<>();
+//         for(FieldError error : errors){
+//             errorMessages.add(error.getField() + ": " + error.getDefaultMessage());
+//         }
+//         log.error("Errores de validación al actualizar usuario con ID {}", id);
+//         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse("Errores de validación "+errorMessages));
+//     }
+//     Usuario updatedUsuario = usuarioService.updateUsuario(id, usuario);
+//     if(updatedUsuario == null){
+//         log.error("Error al actualizar usuario con ID {}", id);
+//         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontró el usuario con ID " + id));
+//     }
+//     return ResponseEntity.ok(updatedUsuario);
+// }
+
+
+@DeleteMapping("/{id}")
+public void deleteUsuario(@PathVariable Long id) {
+    usuarioService.deleteUsuario(id);
 }
 
 
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteUsuario(@PathVariable Long id){
-    Optional<Usuario> usuario = usuarioService.getUsuarioById(id);
-    if(usuario.isEmpty()){
-        log.error("No se encontró el usuario con ID {}", id);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontró el usuario con ID " + id));
-    }
-    usuarioService.deleteUsuario(id); 
-    log.info("Usuario con ID {} eliminado correctamente", id);          
-    return ResponseEntity.ok().build();
-}
+//     @DeleteMapping("/{id}")
+//     public ResponseEntity<Object> deleteUsuario(@PathVariable Long id){
+//     Optional<Usuario> usuario = usuarioService.getUsuarioById(id);
+//     if(usuario.isEmpty()){
+//         log.error("No se encontró el usuario con ID {}", id);
+//         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse("No se encontró el usuario con ID " + id));
+//     }
+//     usuarioService.deleteUsuario(id); 
+//     log.info("Usuario con ID {} eliminado correctamente", id);          
+//     return ResponseEntity.ok().build();
+// }
 
     
     static class ErrorResponse{
