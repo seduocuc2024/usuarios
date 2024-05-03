@@ -1,0 +1,8 @@
+com\usuarios\aplicacion\controller\UsuarioController.class
+com\usuarios\aplicacion\AplicacionApplication.class
+com\usuarios\aplicacion\controller\UsuarioController$ErrorResponse.class
+com\usuarios\aplicacion\model\Usuario.class
+com\usuarios\aplicacion\service\UsuarioService.class
+com\usuarios\aplicacion\controller\UsuarioNotFoundException.class
+com\usuarios\aplicacion\service\UsuarioServicelmpl.class
+com\usuarios\aplicacion\repository\UsuarioRepository.class
